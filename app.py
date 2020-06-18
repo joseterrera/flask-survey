@@ -22,18 +22,21 @@ def show_pick_survey_form():
 
     return render_template("pick-survey.html", surveys=surveys)
 
-
+# handler on home page to submit form
 @app.route("/", methods=["POST"])
 def pick_survey():
     """Select a survey."""
-
+    # survey_code is attribute on pick-survey.html
     survey_id = request.form['survey_code']
 
+
     # don't let them re-take a survey until cookie times out
+    # this cookie is set below once survey is complete
     if request.cookies.get(f"completed_{survey_id}"):
         return render_template("already-done.html")
-
+    # render chosen survey
     survey = surveys[survey_id]
+    # save answers
     session[CURRENT_SURVEY_KEY] = survey_id
 
     return render_template("survey_start.html",
@@ -45,18 +48,18 @@ def start_survey():
     """Clear the session of responses."""
 
     session[RESPONSES_KEY] = []
-
+    # on POST redirect inevitably to question 1
     return redirect("/questions/0")
 
 
 @app.route("/answer", methods=["POST"])
 def handle_question():
     """Save response and redirect to next question."""
-
+    # get answers, both kinds
     choice = request.form['answer']
     text = request.form.get("text", "")
 
-    # add this response to the list in the session
+    # add these responses to the list in the session
     responses = session[RESPONSES_KEY]
     responses.append({"choice": choice, "text": text})
 
